@@ -2,7 +2,11 @@ import streamDeck from "@elgato/streamdeck";
 
 export type ControlState = {
 	available: boolean;
-	value: number;
+	value?: number;
+	isNotched?: boolean;
+	notchCount?: number;
+	position?: number;
+	positionCount?: number;
 };
 
 export type LocoState = {
@@ -14,6 +18,11 @@ export type LocoState = {
 		independentBrake: ControlState;
 		trainBrake: ControlState;
 		reverser: ControlState;
+		dynamicBrake: ControlState;
+		sander: ControlState;
+		headlightsFront: ControlState;
+		headlightsRear: ControlState;
+		wipers: ControlState;
 	};
 };
 
@@ -29,7 +38,9 @@ export type ConnectionSnapshot = {
 };
 
 type Listener = (snapshot: ConnectionSnapshot) => void;
-export type AdjustableControl = "throttle" | "independentBrake" | "trainBrake" | "reverser";
+export type AdjustableControl = "throttle" | "independentBrake" | "trainBrake" | "reverser"
+	| "dynamicBrake" | "headlightsFront" | "headlightsRear" | "wipers";
+export type SettableControl = "sander";
 
 class DvConnection {
 	private pollTimer?: NodeJS.Timeout;
@@ -52,6 +63,21 @@ class DvConnection {
 			const url = new URL("http://127.0.0.1:7245/api/streamdeck/v1/adjust");
 			url.searchParams.set("control", control);
 			url.searchParams.set("steps", String(steps));
+			const response = await fetch(url, {
+				method: "POST",
+				signal: AbortSignal.timeout(1000),
+			});
+			return response.ok;
+		} catch {
+			return false;
+		}
+	}
+
+	async set(control: SettableControl, value: 0 | 1): Promise<boolean> {
+		try {
+			const url = new URL("http://127.0.0.1:7245/api/streamdeck/v1/set");
+			url.searchParams.set("control", control);
+			url.searchParams.set("value", String(value));
 			const response = await fetch(url, {
 				method: "POST",
 				signal: AbortSignal.timeout(1000),

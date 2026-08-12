@@ -52,6 +52,65 @@
 				}
 			},
 			"States": [{ "Image": "imgs/actions/reverser/key" }]
+		},
+		{
+			"Name": "Dynamic Brake",
+			"UUID": "com.john-lenz.dv-remote-dispatch.dynamic-brake",
+			"Icon": "imgs/actions/train-brake/icon",
+			"Tooltip": "Controls and displays the dynamic brake setting.",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/brake.json",
+				"TriggerDescription": { "Rotate": "Change dynamic brake setting" }
+			},
+			"States": [{ "Image": "imgs/actions/train-brake/key" }]
+		},
+		{
+			"Name": "Sander",
+			"UUID": "com.john-lenz.dv-remote-dispatch.sander",
+			"Icon": "imgs/actions/sander/icon",
+			"Tooltip": "Toggles maximum sanding on or off.",
+			"Controllers": ["Keypad"],
+			"States": [
+				{ "Image": "imgs/actions/sander/off", "TitleAlignment": "middle" },
+				{ "Image": "imgs/actions/sander/on", "TitleAlignment": "middle" }
+			]
+		},
+		{
+			"Name": "Front Headlights",
+			"UUID": "com.john-lenz.dv-remote-dispatch.headlights-front",
+			"Icon": "imgs/actions/front-lights/icon",
+			"Tooltip": "Controls and displays the front headlight configuration.",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/brake.json",
+				"TriggerDescription": { "Rotate": "Change front headlights" }
+			},
+			"States": [{ "Image": "imgs/actions/front-lights/key" }]
+		},
+		{
+			"Name": "Rear Headlights",
+			"UUID": "com.john-lenz.dv-remote-dispatch.headlights-rear",
+			"Icon": "imgs/actions/rear-lights/icon",
+			"Tooltip": "Controls and displays the rear headlight configuration.",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/brake.json",
+				"TriggerDescription": { "Rotate": "Change rear headlights" }
+			},
+			"States": [{ "Image": "imgs/actions/rear-lights/key" }]
+		},
+		{
+			"Name": "Wipers",
+			"UUID": "com.john-lenz.dv-remote-dispatch.wipers",
+			"Icon": "imgs/actions/wipers/icon",
+			"Tooltip": "Controls and displays the windshield wiper setting.",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/brake.json",
+				"TriggerDescription": { "Rotate": "Change wiper setting" }
+			},
+			"States": [{ "Image": "imgs/actions/wipers/key" }]
 		}
 	],
 	"Category": "dv-remote-dispatch",

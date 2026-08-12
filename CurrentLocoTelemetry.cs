@@ -1,4 +1,5 @@
 using DV.RemoteControls;
+using DV.Simulation.Controllers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -51,9 +52,29 @@ namespace DvMod.RemoteDispatch
                     return false;
                 remoteController.controlsOverrider.Reverser?.Set(targetReverser);
                 return remoteController.controlsOverrider.Reverser != null;
+            case "dynamicBrake":
+                return MoveControl(remoteController.controlsOverrider.DynamicBrake, steps);
+            case "headlightsFront":
+                return MoveControl(remoteController.controlsOverrider.HeadlightsFront, steps);
+            case "headlightsRear":
+                return MoveControl(remoteController.controlsOverrider.HeadlightsRear, steps);
+            case "wipers":
+                return MoveControl(remoteController.controlsOverrider.Wipers, steps);
             default:
                 return false;
             }
+        }
+
+        public static bool SetControl(string control, float value)
+        {
+            var controls = PlayerManager.Car?.GetComponent<RemoteControllerModule>()?.controlsOverrider;
+            if (controls == null || control != "sander" || (value != 0f && value != 1f))
+                return false;
+
+            if (controls.Sander == null)
+                return false;
+            controls.Sander.Set(value);
+            return true;
         }
 
         private static string GetStateJson()
@@ -65,6 +86,9 @@ namespace DvMod.RemoteDispatch
                 var controller = trainCar.GetComponent<ILocomotiveRemoteControl>();
                 if (controller != null)
                 {
+                    var controls = trainCar.GetComponent<RemoteControllerModule>()?.controlsOverrider;
+                    var headlights = trainCar.SimController?.headlightsController;
+                    var wipers = trainCar.SimController?.wipersController?.wiperController;
                     locomotive = new JObject(
                         new JProperty("id", trainCar.ID),
                         new JProperty("guid", trainCar.CarGUID),
@@ -73,7 +97,14 @@ namespace DvMod.RemoteDispatch
                             Control("throttle", controller.GetTargetThrottle()),
                             Control("independentBrake", controller.GetTargetIndependentBrake()),
                             Control("trainBrake", controller.GetTargetBrake()),
-                            Control("reverser", controller.GetReverserValue())
+                            Control("reverser", controller.GetReverserValue()),
+                            Control("dynamicBrake", controls?.DynamicBrake),
+                            Control("sander", controls?.Sander),
+                            Control("headlightsFront", controls?.HeadlightsFront,
+                                headlights?.GetSetupCount(true)),
+                            Control("headlightsRear", controls?.HeadlightsRear,
+                                headlights?.GetSetupCount(false)),
+                            Control("wipers", controls?.Wipers, wipers?.speeds.Length)
                         ))
                     );
                 }
@@ -101,6 +132,34 @@ namespace DvMod.RemoteDispatch
                 new JProperty("available", true),
                 new JProperty("value", Math.Round(value, 3))
             ));
+        }
+
+        private static JProperty Control(string name, OverridableBaseControl? control,
+            int? positionCount = null)
+        {
+            if (control == null)
+                return new JProperty(name, new JObject(new JProperty("available", false)));
+
+            var state = new JObject(
+                new JProperty("available", true),
+                new JProperty("value", Math.Round(control.Value, 3)),
+                new JProperty("isNotched", control.IsNotched),
+                new JProperty("notchCount", Math.Round(control.NotchCount, 3))
+            );
+            if (positionCount > 0)
+            {
+                state.Add("position", Mathf.RoundToInt(control.Value * (positionCount.Value - 1)));
+                state.Add("positionCount", positionCount.Value);
+            }
+            return new JProperty(name, state);
+        }
+
+        private static bool MoveControl(OverridableBaseControl? control, int steps)
+        {
+            if (control == null)
+                return false;
+            control.Move(Math.Sign(steps));
+            return true;
         }
     }
 }

@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO.Compression;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -95,6 +96,22 @@ namespace DvMod.RemoteDispatch
                 var control = request.QueryString["control"] ?? "";
                 var success = await Updater.RunOnMainThread(() =>
                     CurrentLocoTelemetry.AdjustControl(control, steps)
+                ).ConfigureAwait(false);
+                RenderEmpty(context, success ? 204 : 400);
+                return;
+            }
+            if (request.HttpMethod == "POST" && request.Url.AbsolutePath == "/api/streamdeck/v1/set")
+            {
+                if (!IPAddress.IsLoopback(request.RemoteEndPoint.Address)
+                    || !float.TryParse(request.QueryString["value"], NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var value))
+                {
+                    RenderEmpty(context, 403);
+                    return;
+                }
+                var control = request.QueryString["control"] ?? "";
+                var success = await Updater.RunOnMainThread(() =>
+                    CurrentLocoTelemetry.SetControl(control, value)
                 ).ConfigureAwait(false);
                 RenderEmpty(context, success ? 204 : 400);
                 return;
