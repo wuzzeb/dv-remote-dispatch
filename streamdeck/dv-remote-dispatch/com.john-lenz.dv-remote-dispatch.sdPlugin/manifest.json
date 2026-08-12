@@ -56,14 +56,14 @@
 		{
 			"Name": "Dynamic Brake",
 			"UUID": "com.john-lenz.dv-remote-dispatch.dynamic-brake",
-			"Icon": "imgs/actions/train-brake/icon",
+			"Icon": "imgs/actions/dynamic-brake/icon",
 			"Tooltip": "Controls and displays the dynamic brake setting.",
 			"Controllers": ["Encoder"],
 			"Encoder": {
 				"layout": "layouts/brake.json",
 				"TriggerDescription": { "Rotate": "Change dynamic brake setting" }
 			},
-			"States": [{ "Image": "imgs/actions/train-brake/key" }]
+			"States": [{ "Image": "imgs/actions/dynamic-brake/key" }]
 		},
 		{
 			"Name": "Sander",
@@ -111,6 +111,28 @@
 				"TriggerDescription": { "Rotate": "Change wiper setting" }
 			},
 			"States": [{ "Image": "imgs/actions/wipers/key" }]
+		},
+		{
+			"Name": "Horn",
+			"UUID": "com.john-lenz.dv-remote-dispatch.horn",
+			"Icon": "imgs/actions/horn/icon",
+			"Tooltip": "Sounds the locomotive horn while held.",
+			"Controllers": ["Keypad"],
+			"States": [
+				{ "Image": "imgs/actions/horn/off", "TitleAlignment": "middle" },
+				{ "Image": "imgs/actions/horn/on", "TitleAlignment": "middle" }
+			]
+		},
+		{
+			"Name": "Cab Light",
+			"UUID": "com.john-lenz.dv-remote-dispatch.cab-light",
+			"Icon": "imgs/actions/cab-light/icon",
+			"Tooltip": "Cycles the cab lights through off, gauge lights, and full cab lights.",
+			"Controllers": ["Keypad"],
+			"States": [
+				{ "Image": "imgs/actions/cab-light/off", "TitleAlignment": "bottom" },
+				{ "Image": "imgs/actions/cab-light/on", "TitleAlignment": "bottom" }
+			]
 		}
 	],
 	"Category": "dv-remote-dispatch",

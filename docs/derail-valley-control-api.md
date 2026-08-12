@@ -313,6 +313,72 @@ Recommended Stream Deck design:
 - Display `OFF`, `INT`, `ON`, or `FAST` when four positions are confirmed; otherwise display a numeric position.
 - Press may set `0` for off.
 
+### Horn
+
+Type:
+
+```csharp
+DV.Simulation.Controllers.HornControl
+```
+
+Access:
+
+```csharp
+HornControl? horn = controls?.Horn;
+ILocomotiveRemoteControl? remote = car?.GetComponent<ILocomotiveRemoteControl>();
+```
+
+Horn neutral conventions differ by locomotive. `HornControl.neutralAt0` selects between a raw zero-neutral command and a raw `0.5` neutral command. Prefer `ILocomotiveRemoteControl.UpdateHorn(value)`, which routes through `RemoteControllerModule` and handles this detail.
+
+Stream Deck design:
+
+- Momentary key.
+- Key down calls `UpdateHorn(1f)`.
+- Key up calls `UpdateHorn(0f)`.
+- Display separate inactive and active images without text.
+
+### Cab Light
+
+Type:
+
+```csharp
+DV.Simulation.Controllers.CabLightControl
+```
+
+Access:
+
+```csharp
+CabLightControl? cabLight = controls?.CabLight;
+```
+
+`CabLightControl` uses the common normalized and native-notch API. The current integration calculates the runtime position count from `NotchCount` and cycles with wraparound on each key press.
+
+Expected three-position display:
+
+```text
+0: OFF
+1: GAUGES
+2: CAB
+```
+
+The requested control value may differ from effective illumination when the power fuse is off or cab damage disables lights. The effective state in `CabLightsController.isOn` is private.
+
+### Bell
+
+Bell is intentionally deferred. It is not exposed by `BaseControlsOverrider` or `ILocomotiveRemoteControl`.
+
+When the interior is loaded, it can be found through:
+
+```csharp
+InteriorControlsManager.TryGetControl(
+    InteriorControlsManager.ControlType.Bell,
+    out InteriorControlsManager.ControlReference reference);
+reference.controlImplBase.Value;
+reference.controlImplBase.SetValue(0f or 1f);
+```
+
+This route depends on loaded cab interactables. A robust unloaded-cab implementation would need to discover prefab-specific simulation port IDs for `ElectricBell` or `SteamBell`; do not assume the short `CONTROL` name is a globally usable port ID. Bell is nonessential and should remain deferred unless a reliable generic lookup is established.
+
 ## Multiple-Unit Behavior
 
 Dynamic brake, sander, and front/rear headlights can propagate through multiple-unit connections. Headlight direction can swap when units are reversed. Wipers are local to the cab.
@@ -366,6 +432,21 @@ For each locomotive family or livery:
 8. Test headlights with fuses, damage, hoses, MU cables, and reversed unit orientation.
 9. Enumerate wiper speed arrays and verify requested versus effective speed with the fuse disabled.
 10. Repeat after entering a different locomotive without restarting the mod or Stream Deck plugin.
+
+## Deferred Locomotive-Specific Controls
+
+The generic diesel driving set is otherwise complete. Leave existing keyboard controls in place for starter, fuel cutoff, power shutdown, and fuse operations unless state-aware Stream Deck actions become valuable.
+
+Future locomotive-family work:
+
+- Diesel-mechanical gearbox A/B and related transmission state
+- Electric pantograph, main breaker, and electrical isolation
+- Multiple-engine start/stop or isolation where applicable
+- Independent cab/dash lights on locomotives that do not use the generic cab-light control
+- Steam cylinder cocks, injector, firedoor, blower, damper, blowdown, coal dump, dynamo, air pump, and lubricator
+- Steam regulator/cutoff behavior and resource telemetry
+
+Steam controls should be researched and live-tested only after representative locomotives are unlocked. Many are listed in `InteriorControlsManager.ControlType`, but that does not establish generic remote access or consistent semantics.
 
 ## Decompilation Commands
 

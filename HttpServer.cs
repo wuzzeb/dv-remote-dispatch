@@ -116,6 +116,20 @@ namespace DvMod.RemoteDispatch
                 RenderEmpty(context, success ? 204 : 400);
                 return;
             }
+            if (request.HttpMethod == "POST" && request.Url.AbsolutePath == "/api/streamdeck/v1/cycle")
+            {
+                if (!IPAddress.IsLoopback(request.RemoteEndPoint.Address))
+                {
+                    RenderEmpty(context, 403);
+                    return;
+                }
+                var control = request.QueryString["control"] ?? "";
+                var success = await Updater.RunOnMainThread(() =>
+                    CurrentLocoTelemetry.CycleControl(control)
+                ).ConfigureAwait(false);
+                RenderEmpty(context, success ? 204 : 400);
+                return;
+            }
             if (request.Url.Segments.Length < 2)
             {
                 context.Response.ContentType = ContentTypes.Html;

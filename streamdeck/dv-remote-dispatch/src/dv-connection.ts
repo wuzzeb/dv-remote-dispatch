@@ -20,6 +20,8 @@ export type LocoState = {
 		reverser: ControlState;
 		dynamicBrake: ControlState;
 		sander: ControlState;
+		horn: ControlState;
+		cabLight: ControlState;
 		headlightsFront: ControlState;
 		headlightsRear: ControlState;
 		wipers: ControlState;
@@ -40,7 +42,8 @@ export type ConnectionSnapshot = {
 type Listener = (snapshot: ConnectionSnapshot) => void;
 export type AdjustableControl = "throttle" | "independentBrake" | "trainBrake" | "reverser"
 	| "dynamicBrake" | "headlightsFront" | "headlightsRear" | "wipers";
-export type SettableControl = "sander";
+export type SettableControl = "sander" | "horn";
+export type CycledControl = "cabLight";
 
 class DvConnection {
 	private pollTimer?: NodeJS.Timeout;
@@ -78,6 +81,20 @@ class DvConnection {
 			const url = new URL("http://127.0.0.1:7245/api/streamdeck/v1/set");
 			url.searchParams.set("control", control);
 			url.searchParams.set("value", String(value));
+			const response = await fetch(url, {
+				method: "POST",
+				signal: AbortSignal.timeout(1000),
+			});
+			return response.ok;
+		} catch {
+			return false;
+		}
+	}
+
+	async cycle(control: CycledControl): Promise<boolean> {
+		try {
+			const url = new URL("http://127.0.0.1:7245/api/streamdeck/v1/cycle");
+			url.searchParams.set("control", control);
 			const response = await fetch(url, {
 				method: "POST",
 				signal: AbortSignal.timeout(1000),

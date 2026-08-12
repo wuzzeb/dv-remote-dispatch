@@ -67,13 +67,33 @@ namespace DvMod.RemoteDispatch
 
         public static bool SetControl(string control, float value)
         {
-            var controls = PlayerManager.Car?.GetComponent<RemoteControllerModule>()?.controlsOverrider;
-            if (controls == null || control != "sander" || (value != 0f && value != 1f))
+            var trainCar = PlayerManager.Car;
+            var controller = trainCar?.GetComponent<ILocomotiveRemoteControl>();
+            var controls = trainCar?.GetComponent<RemoteControllerModule>()?.controlsOverrider;
+            if (controls == null || (value != 0f && value != 1f))
                 return false;
 
-            if (controls.Sander == null)
+            if (control == "horn" && controller != null && controls.Horn != null)
+            {
+                controller.UpdateHorn(value);
+                return true;
+            }
+            if (control != "sander" || controls.Sander == null)
                 return false;
             controls.Sander.Set(value);
+            return true;
+        }
+
+        public static bool CycleControl(string control)
+        {
+            var cabLight = PlayerManager.Car?.GetComponent<RemoteControllerModule>()?
+                .controlsOverrider.CabLight;
+            if (control != "cabLight" || cabLight == null)
+                return false;
+
+            var positionCount = Mathf.Max(2, Mathf.RoundToInt(cabLight.NotchCount));
+            var position = Mathf.RoundToInt(cabLight.Value * (positionCount - 1));
+            cabLight.Set(((position + 1) % positionCount) / (float)(positionCount - 1));
             return true;
         }
 
@@ -100,6 +120,11 @@ namespace DvMod.RemoteDispatch
                             Control("reverser", controller.GetReverserValue()),
                             Control("dynamicBrake", controls?.DynamicBrake),
                             Control("sander", controls?.Sander),
+                            HornControl("horn", controls?.Horn),
+                            Control("cabLight", controls?.CabLight,
+                                controls?.CabLight == null
+                                    ? (int?)null
+                                    : Mathf.Max(2, Mathf.RoundToInt(controls.CabLight.NotchCount))),
                             Control("headlightsFront", controls?.HeadlightsFront,
                                 headlights?.GetSetupCount(true)),
                             Control("headlightsRear", controls?.HeadlightsRear,
@@ -160,6 +185,20 @@ namespace DvMod.RemoteDispatch
                 return false;
             control.Move(Math.Sign(steps));
             return true;
+        }
+
+        private static JProperty HornControl(string name, HornControl? control)
+        {
+            if (control == null)
+                return new JProperty(name, new JObject(new JProperty("available", false)));
+
+            var value = control.neutralAt0
+                ? control.Value
+                : Mathf.Abs(control.Value * 2f - 1f);
+            return new JProperty(name, new JObject(
+                new JProperty("available", true),
+                new JProperty("value", Math.Round(value, 3))
+            ));
         }
     }
 }
