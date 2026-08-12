@@ -72,12 +72,33 @@ namespace DvMod.RemoteDispatch
         private static bool CheckAuthentication(HttpListenerContext context)
         {
             string serverPassword = Main.settings.serverPassword;
-            return context.User?.Identity is HttpListenerBasicIdentity identity && (string.IsNullOrEmpty(serverPassword) || identity.Password == serverPassword);
+            return string.IsNullOrEmpty(serverPassword)
+                || context.User?.Identity is HttpListenerBasicIdentity identity && identity.Password == serverPassword;
         }
 
         private static async Task HandleRequest(HttpListenerContext context)
         {
             var request = context.Request;
+            if (request.HttpMethod == "GET" && request.Url.AbsolutePath == "/api/streamdeck/v1")
+            {
+                Render200(context, ContentTypes.Json, CurrentLocoTelemetry.GetCurrentStateJson());
+                return;
+            }
+            if (request.HttpMethod == "POST" && request.Url.AbsolutePath == "/api/streamdeck/v1/adjust")
+            {
+                if (!IPAddress.IsLoopback(request.RemoteEndPoint.Address)
+                    || !int.TryParse(request.QueryString["steps"], out var steps))
+                {
+                    RenderEmpty(context, 403);
+                    return;
+                }
+                var control = request.QueryString["control"] ?? "";
+                var success = await Updater.RunOnMainThread(() =>
+                    CurrentLocoTelemetry.AdjustControl(control, steps)
+                ).ConfigureAwait(false);
+                RenderEmpty(context, success ? 204 : 400);
+                return;
+            }
             if (request.Url.Segments.Length < 2)
             {
                 context.Response.ContentType = ContentTypes.Html;

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/layout.json",
+  "id": "dv-brake",
+  "items": [
+    {
+      "key": "label",
+      "type": "text",
+      "rect": [8, 5, 184, 22],
+      "font": { "size": 15, "weight": 700 },
+      "alignment": "center",
+      "color": "#f6a817"
+    },
+    {
+      "key": "value",
+      "type": "text",
+      "rect": [8, 30, 184, 38],
+      "font": { "size": 30, "weight": 700 },
+      "alignment": "center"
+    },
+    {
+      "key": "indicator",
+      "type": "bar",
+      "rect": [8, 76, 184, 14],
+      "value": 0,
+      "subtype": 4,
+      "border_w": 0,
+      "bar_bg_c": "#292929",
+      "bar_fill_c": "#f6a817"
+    }
+  ]
+}

@@ -11,6 +11,7 @@ namespace DvMod.RemoteDispatch
         public void Start()
         {
             StartCoroutine(CheckPlayerTransformCoro());
+            StartCoroutine(CaptureCurrentLocoTelemetryCoro());
             StartCoroutine(CheckTrainsetsCoro());
             StartCoroutine(DeferredEventsCoro());
         }
@@ -57,6 +58,15 @@ namespace DvMod.RemoteDispatch
                     }
                 }
                 yield return null;
+            }
+        }
+
+        private IEnumerator CaptureCurrentLocoTelemetryCoro()
+        {
+            while (true)
+            {
+                CurrentLocoTelemetry.CaptureState();
+                yield return WaitFor.Seconds(0.1f);
             }
         }
 

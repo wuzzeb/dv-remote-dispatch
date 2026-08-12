@@ -1,0 +1,63 @@
+{
+	"Name": "dv-remote-dispatch",
+	"Version": "0.1.0.0",
+	"Author": "John Lenz",
+	"Actions": [
+		{
+			"Name": "Throttle Display",
+			"UUID": "com.john-lenz.dv-remote-dispatch.throttle",
+			"Icon": "imgs/actions/throttle/icon",
+			"Tooltip": "Displays the current throttle and speed from Derail Valley.",
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "layouts/throttle.json"
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/throttle/key",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "Independent Brake Display",
+			"UUID": "com.john-lenz.dv-remote-dispatch.independent-brake",
+			"Icon": "imgs/actions/independent-brake/icon",
+			"Tooltip": "Displays the current independent brake setting from Derail Valley.",
+			"Controllers": ["Encoder"],
+			"Encoder": { "layout": "layouts/brake.json" },
+			"States": [{ "Image": "imgs/actions/independent-brake/key" }]
+		},
+		{
+			"Name": "Train Brake Display",
+			"UUID": "com.john-lenz.dv-remote-dispatch.train-brake",
+			"Icon": "imgs/actions/train-brake/icon",
+			"Tooltip": "Displays the current train brake setting from Derail Valley.",
+			"Controllers": ["Encoder"],
+			"Encoder": { "layout": "layouts/brake.json" },
+			"States": [{ "Image": "imgs/actions/train-brake/key" }]
+		}
+	],
+	"Category": "dv-remote-dispatch",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": "Train display for Derail Valley",
+	"Icon": "imgs/plugin/marketplace",
+	"SDKVersion": 3,
+	"Software": {
+		"MinimumVersion": "7.1"
+	},
+	"OS": [
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		}
+	],
+	"Nodejs": {
+		"Version": "24",
+		"Debug": "enabled"
+	},
+	"UUID": "com.john-lenz.dv-remote-dispatch"
+}
