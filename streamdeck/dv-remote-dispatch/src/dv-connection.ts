@@ -29,6 +29,7 @@ export type ConnectionSnapshot = {
 };
 
 type Listener = (snapshot: ConnectionSnapshot) => void;
+export type AdjustableControl = "throttle" | "independentBrake" | "trainBrake" | "reverser";
 
 class DvConnection {
 	private pollTimer?: NodeJS.Timeout;
@@ -46,7 +47,7 @@ class DvConnection {
 		return () => this.listeners.delete(listener);
 	}
 
-	async adjust(control: "throttle" | "independentBrake" | "trainBrake", steps: number): Promise<boolean> {
+	async adjust(control: AdjustableControl, steps: number): Promise<boolean> {
 		try {
 			const url = new URL("http://127.0.0.1:7245/api/streamdeck/v1/adjust");
 			url.searchParams.set("control", control);

@@ -1,8 +1,8 @@
 import { action, type DialAction, type DialRotateEvent, SingletonAction, type WillAppearEvent } from "@elgato/streamdeck";
 
-import { dvConnection, type ConnectionSnapshot, type LocoState } from "../dv-connection";
+import { dvConnection, type AdjustableControl, type ConnectionSnapshot, type LocoState } from "../dv-connection";
 
-type Control = "throttle" | "independentBrake" | "trainBrake";
+type Control = AdjustableControl;
 
 abstract class LocoControlDisplay extends SingletonAction {
 	private unsubscribe?: () => void;
@@ -39,13 +39,17 @@ abstract class LocoControlDisplay extends SingletonAction {
 		if (!control.available)
 			return action.setFeedback({ label: this.title, value: "N/A", speed: "", indicator: 0 });
 
-		const percentage = Math.round(control.value * 100);
-		return action.setFeedback({
+		return action.setFeedback(this.formatFeedback(control.value, locomotive));
+	}
+
+	protected formatFeedback(value: number, locomotive: LocoState) {
+		const percentage = Math.round(value * 100);
+		return {
 			label: this.title,
 			value: `${percentage}%`,
 			speed: this.formatSpeed(locomotive),
 			indicator: percentage,
-		});
+		};
 	}
 
 	protected formatSpeed(_locomotive: LocoState): string {
@@ -73,4 +77,20 @@ export class IndependentBrakeDisplay extends LocoControlDisplay {
 export class TrainBrakeDisplay extends LocoControlDisplay {
 	protected readonly control = "trainBrake";
 	protected readonly title = "TRAIN BRAKE";
+}
+
+@action({ UUID: "com.john-lenz.dv-remote-dispatch.reverser" })
+export class ReverserDisplay extends LocoControlDisplay {
+	protected readonly control = "reverser";
+	protected readonly title = "REVERSER";
+
+	protected override formatFeedback(value: number, locomotive: LocoState) {
+		const position = value < 0.25 ? "R" : value > 0.75 ? "F" : "N";
+		return {
+			label: this.title,
+			value: position,
+			speed: `${Math.round(locomotive.speedKph)} km/h`,
+			indicator: Math.round(value * 100),
+		};
+	}
 }

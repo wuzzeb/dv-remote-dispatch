@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/layout.json",
+  "id": "dv-reverser",
+  "items": [
+    {
+      "key": "label",
+      "type": "text",
+      "rect": [8, 5, 92, 22],
+      "font": { "size": 14, "weight": 700 },
+      "alignment": "left",
+      "color": "#f6a817",
+      "value": "REVERSER"
+    },
+    {
+      "key": "speed",
+      "type": "text",
+      "rect": [100, 5, 92, 22],
+      "font": { "size": 14, "weight": 600 },
+      "alignment": "right",
+      "color": "#b9d9f5"
+    },
+    {
+      "key": "value",
+      "type": "text",
+      "rect": [8, 28, 184, 42],
+      "font": { "size": 34, "weight": 800 },
+      "alignment": "center"
+    },
+    {
+      "key": "indicator",
+      "type": "gbar",
+      "rect": [8, 74, 184, 22],
+      "value": 50,
+      "subtype": 4,
+      "bar_h": 8,
+      "border_w": 0,
+      "bar_bg_c": "0:#df4b38,0.5:#f6a817,1:#52b788"
+    }
+  ]
+}

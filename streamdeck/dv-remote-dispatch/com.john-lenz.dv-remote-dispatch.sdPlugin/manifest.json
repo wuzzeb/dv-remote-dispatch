@@ -38,6 +38,20 @@
 			"Controllers": ["Encoder"],
 			"Encoder": { "layout": "layouts/brake.json" },
 			"States": [{ "Image": "imgs/actions/train-brake/key" }]
+		},
+		{
+			"Name": "Reverser",
+			"UUID": "com.john-lenz.dv-remote-dispatch.reverser",
+			"Icon": "imgs/actions/reverser/icon",
+			"Tooltip": "Controls and displays the current reverser position.",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/reverser.json",
+				"TriggerDescription": {
+					"Rotate": "Change reverser position"
+				}
+			},
+			"States": [{ "Image": "imgs/actions/reverser/key" }]
 		}
 	],
 	"Category": "dv-remote-dispatch",

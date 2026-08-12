@@ -42,6 +42,15 @@ namespace DvMod.RemoteDispatch
                 remoteController.controlsOverrider.Brake?.Set(
                     Mathf.Clamp01(controller.GetTargetBrake() + steps * 0.05f));
                 return remoteController.controlsOverrider.Brake != null;
+            case "reverser":
+                var currentReverser = controller.GetReverserValue();
+                var targetReverser = Mathf.Clamp01(currentReverser + Math.Sign(steps) * 0.5f);
+                var forwardSpeedKph = trainCar!.GetForwardSpeed() * 3.6f;
+                if ((targetReverser < 0.5f && forwardSpeedKph > 1f)
+                    || (targetReverser > 0.5f && forwardSpeedKph < -1f))
+                    return false;
+                remoteController.controlsOverrider.Reverser?.Set(targetReverser);
+                return remoteController.controlsOverrider.Reverser != null;
             default:
                 return false;
             }
