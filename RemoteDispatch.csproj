@@ -13,24 +13,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Assembly-CSharp"/>
-    <Reference Include="DV.BrakeSystem"/>
-    <Reference Include="DV.Simulation"/>
-    <Reference Include="DV.Common"/>
-    <Reference Include="DV.Interaction"/>
-    <Reference Include="DV.PointSet"/>
-    <Reference Include="DV.RailTrack" />
-    <Reference Include="DV.ThingTypes"/>
-    <Reference Include="DV.Utils"/>
-    <Reference Include="Microsoft.CSharp"/>
-    <Reference Include="Newtonsoft.Json"/>
-    <Reference Include="net.smkd.vector3d"/>
-    <Reference Include="WorldStreamer" />
+    <Reference Include="Assembly-CSharp"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\Assembly-CSharp.dll</HintPath></Reference>
+    <Reference Include="DV.BrakeSystem"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.BrakeSystem.dll</HintPath></Reference>
+    <Reference Include="DV.Simulation"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.Simulation.dll</HintPath></Reference>
+    <Reference Include="DV.Common"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.Common.dll</HintPath></Reference>
+    <Reference Include="DV.Interaction"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.Interaction.dll</HintPath></Reference>
+    <Reference Include="DV.PointSet"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.PointSet.dll</HintPath></Reference>
+    <Reference Include="DV.RailTrack"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.RailTrack.dll</HintPath></Reference>
+    <Reference Include="DV.ThingTypes"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.ThingTypes.dll</HintPath></Reference>
+    <Reference Include="DV.Utils"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.Utils.dll</HintPath></Reference>
+    <Reference Include="Microsoft.CSharp"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\Microsoft.CSharp.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\Newtonsoft.Json.dll</HintPath></Reference>
+    <Reference Include="net.smkd.vector3d"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\net.smkd.vector3d.dll</HintPath></Reference>
+    <Reference Include="WorldStreamer"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\WorldStreamer.dll</HintPath></Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="UnityEngine.CoreModule"/>
-    <Reference Include="UnityEngine.IMGUIModule"/>
+    <Reference Include="UnityEngine.CoreModule"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\UnityEngine.CoreModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\UnityEngine.IMGUIModule.dll</HintPath></Reference>
     <PackageReference Include="UnityModManager" Version="0.27.2"/>
   </ItemGroup>
 

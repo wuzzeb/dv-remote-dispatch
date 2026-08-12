@@ -197,3 +197,80 @@ body {
 #jobList {
     clear: left;
 }
+
+.station-jump-control {
+  background: white;
+  padding: 4px;
+}
+.station-jump-control select {
+  border: 0;
+  font-size: 15px;
+  height: 30px;
+  max-width: 230px;
+}
+.station-code-marker {
+  background: transparent;
+  border: 0;
+}
+.station-code-marker span {
+  background: rgba(20, 20, 20, 0.85);
+  border: 2px solid deepskyblue;
+  border-radius: 5px;
+  box-shadow: 0 1px 4px black;
+  color: white;
+  display: block;
+  font: bold 17px/24px Arial, sans-serif;
+  height: 24px;
+  text-align: center;
+  width: 44px;
+}
+.overview-junction-marker,
+.overview-player-marker {
+  background: transparent;
+  border: 0;
+}
+.overview-junction-symbol {
+  cursor: pointer;
+  height: 44px;
+  transform-origin: center;
+  width: 44px;
+}
+.overview-junction-symbol svg circle {
+  fill: rgba(190, 25, 25, 0.9);
+  stroke: black;
+  stroke-width: 2px;
+}
+.overview-junction-symbol svg .junction-arrow {
+  fill: none;
+  stroke: white;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+}
+.overview-junction-symbol svg .junction-pointer {
+  fill: #ffd43b;
+  stroke: black;
+  stroke-linejoin: round;
+  stroke-width: 2px;
+}
+.overview-player-symbol {
+  background: rgba(0, 0, 0, 0.75);
+  border: 3px solid var(--player-color);
+  border-radius: 50%;
+  box-shadow: 0 0 8px 3px var(--player-color);
+  box-sizing: border-box;
+  height: 36px;
+  position: relative;
+  width: 36px;
+}
+.overview-player-arrow {
+  border-bottom: 12px solid var(--player-color);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  height: 0;
+  left: 8px;
+  position: absolute;
+  top: 7px;
+  transform-origin: 7px 11px;
+  width: 0;
+}

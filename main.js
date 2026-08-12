@@ -1,6 +1,8 @@
 const initialZoom = 20;
 const earthCircumference = 40e6;
 const metersToDegrees = 360 / earthCircumference;
+const detailZoomThreshold = 17;
+const yardJunctionRadiusMeters = 150;
 
 /////////////////////
 // map
@@ -11,8 +13,12 @@ const maxBounds = [[-0.02, -0.02], [0.17, 0.17]];
 const map = L.map('map', {
   minZoom: 13,
   maxBounds: maxBounds,
+  maxBoundsViscosity: 1,
   tap: false,
+  wheelPxPerZoomLevel: 120,
+  zoomDelta: 0.5,
   zoomControl: false,
+  zoomSnap: 0.25,
 })
 .fitBounds(mapBounds);
 L.control.scale().addTo(map);
@@ -20,26 +26,37 @@ const zoomHome = new L.Control.ZoomHome({
   position: 'topleft',
   zoomInText: '<i class="fas fa-search-plus"></i>',
   zoomHomeText: '<i class="fas fa-user"></i>',
-  zoomHomeTitle: 'Zoom to player(s)',
+  zoomHomeTitle: 'Toggle player follow',
   zoomOutText: '<i class="fas fa-search-minus"></i>',
 }).addTo(map);
 
 let markerToFollow;
+let markerToFollowKey;
 map.addEventListener('mousedown', stopFollowing);
-map.on('drag', () => {
-    map.fitBounds(map.getBounds());
-});
-map.on('zoomanim', () => {
-    map.fitBounds(map.getBounds());
-});
 
-function setMarkerToFollow(marker) {
+function getMarkerCenter(marker) {
+  return marker.getBounds ? marker.getBounds().getCenter() : marker.getLatLng();
+}
+
+function setMarkerToFollow(marker, key = marker) {
+  if (markerToFollowKey === key) {
+    stopFollowing();
+    return;
+  }
   markerToFollow = marker;
-  map.panTo(marker.getBounds().getCenter());
+  markerToFollowKey = key;
+  map.panTo(getMarkerCenter(marker));
 }
 
 function stopFollowing() {
   markerToFollow = undefined;
+  markerToFollowKey = undefined;
+}
+
+function togglePlayerFollow(playerId) {
+  const marker = overviewPlayerMarkers.get(playerId);
+  if (marker)
+    setMarkerToFollow(marker, `player-${playerId}`);
 }
 
 function zoomToAllPlayers() {
@@ -49,8 +66,9 @@ function zoomToAllPlayers() {
 }
 
 map.addEventListener('zoomhome', () => {
-  stopFollowing();
-  zoomToAllPlayers();
+  const playerId = playerMarkers.keys().next().value;
+  if (playerId !== undefined)
+    togglePlayerFollow(playerId);
 });
 
 /////////////////////
@@ -312,6 +330,37 @@ document.getElementById('jobActiveOnly').addEventListener('change', e => {
 // track
 
 const trackPolyLines = new Map();
+const trackCoordinates = new Map();
+const trackLabels = new Map();
+const yardTrackCoordinates = [];
+const stationBounds = new Map();
+const detailTrackLabelLayer = L.layerGroup().addTo(map);
+const stationCodeLayer = L.layerGroup();
+
+const stationNames = {
+  CME: 'Coal Mine East',
+  CMS: 'Coal Mine South',
+  CP: 'Coal Power Plant',
+  CS: 'City South',
+  CW: 'City West',
+  FF: 'Food Factory & Town',
+  FM: 'Farm',
+  FRC: 'Forest Central',
+  FRS: 'Forest South',
+  GF: 'Goods Factory & Town',
+  HB: 'Harbor & Town',
+  HMB: 'Harbor Military Base',
+  IME: 'Iron Mine East',
+  IMW: 'Iron Mine West',
+  MB: 'Military Base',
+  MF: 'Machine Factory & Town',
+  MFMB: 'Machine Factory Military Base',
+  OR: 'Oil Refinery',
+  OWC: 'Oil Well Central',
+  OWN: 'Oil Well North',
+  SM: 'Steel Mill',
+  SW: 'Sawmill',
+};
 
 function colorForYardId(yardId) {
   switch (yardId) {
@@ -350,10 +399,13 @@ function createTrackLabel(trackId, position, angle) {
   svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   svg.setAttribute('viewBox', '-50 -10 100 20');
   svg.innerHTML =
-    `<text text-anchor="middle" dominant-baseline="central" transform="${rotation}" font-family="Arial" font-weight="bold" fill="steelblue" stroke="black" stroke-width="0.25px">${trackId.slice(trackId.indexOf('-') + 1)}</text>`;
+    `<text text-anchor="middle" dominant-baseline="central" transform="${rotation}" font-family="Arial" font-size="10" font-weight="bold" fill="deepskyblue" stroke="black" stroke-width="0.35px" paint-order="stroke">${trackId.slice(trackId.indexOf('-') + 1)}</text>`;
   L.svgOverlay(svg, bounds, { renderer: canvasRenderer })
-  .addTo(map)
-  .setZIndex(1000);
+    .addTo(detailTrackLabelLayer)
+    .setZIndex(1000);
+  if (!trackLabels.has(trackId))
+    trackLabels.set(trackId, []);
+  trackLabels.get(trackId).push(svg);
 }
 
 function pointDistance(p1, p2) {
@@ -394,6 +446,51 @@ function createTrackLabels(trackId, coords) {
   }
 }
 
+function createStationNavigation() {
+  const control = L.control({ position: 'topright' });
+  control.onAdd = () => {
+    const container = L.DomUtil.create('div', 'leaflet-bar station-jump-control');
+    const select = L.DomUtil.create('select', '', container);
+    select.title = 'Zoom to a station';
+    select.innerHTML = '<option value="">Go to station...</option>' +
+      '<option value="__map">Whole map</option>' +
+      '<option value="__players">Current train / player</option>' +
+      Array.from(stationBounds.keys())
+        .sort((a, b) => stationNames[a].localeCompare(stationNames[b]))
+        .map(code => `<option value="${code}">${stationNames[code]} (${code})</option>`)
+        .join('');
+    select.addEventListener('change', event => {
+      const value = event.target.value;
+      event.target.value = '';
+      stopFollowing();
+      if (value === '__map')
+        map.fitBounds(mapBounds);
+      else if (value === '__players')
+        zoomToAllPlayers();
+      else if (stationBounds.has(value))
+        map.fitBounds(stationBounds.get(value), { padding: [40, 40], maxZoom: 19 });
+    });
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+    return container;
+  };
+  control.addTo(map);
+}
+
+function createStationLabels() {
+  stationBounds.forEach((bounds, code) => {
+    const icon = L.divIcon({
+      className: 'station-code-marker',
+      html: `<span title="${stationNames[code]}">${code}</span>`,
+      iconAnchor: [24, 14],
+      iconSize: [48, 28],
+    });
+    L.marker(bounds.getCenter(), { icon, interactive: false })
+      .addTo(stationCodeLayer);
+  });
+  createStationNavigation();
+}
+
 const tracksReady = fetch(new URL('/track', location))
 .then(resp => resp.json())
 .then(tracks => {
@@ -405,24 +502,42 @@ const tracksReady = fetch(new URL('/track', location))
       renderer: canvasRenderer,
     }).addTo(map);
     trackPolyLines.set(trackId, polyline);
-    if (isSiding)
+    trackCoordinates.set(trackId, coords);
+    if (isSiding) {
+      const stationCode = trackId.split('-')[0];
+      if (!stationBounds.has(stationCode))
+        stationBounds.set(stationCode, L.latLngBounds(coords));
+      else
+        stationBounds.get(stationCode).extend(polyline.getBounds());
+      yardTrackCoordinates.push(coords);
       createTrackLabels(trackId, coords)
+    }
   });
+  createStationLabels();
 });
 
 /////////////////////
 // junctions
 
 let junctions = [];
+const trackBranchCounts = new Map();
+const selectedTrackBranchCounts = new Map();
+const detailJunctionLayer = L.layerGroup().addTo(map);
+const overviewJunctionLayer = L.layerGroup();
 const junctionsReady = tracksReady
 .then(_ => fetch(new URL('/junction', location)))
 .then(resp => resp.json())
-.then(allJunctionData =>
+.then(allJunctionData => {
+  allJunctionData.forEach(data => data.branches.forEach(trackId =>
+    trackBranchCounts.set(trackId, (trackBranchCounts.get(trackId) || 0) + 1)));
   junctions = allJunctionData.map((data, index) => ({
-    marker: createJunctionMarker(data.position, index),
-    branches: data.branches,
-  }))
-);
+      marker: createJunctionMarker(data.position, index),
+      overviewMarker: isRouteJunction(data.position) ? createOverviewJunctionMarker(data.position, index) : null,
+      branches: data.branches,
+      position: data.position,
+      selectedBranch: null,
+    }));
+}).then(() => updateMapForZoom());
 
 function toggleJunction(junctionId) {
   fetch(new URL(`/junction/${junctionId}/toggle`, location), { method: 'POST' })
@@ -447,6 +562,69 @@ function createJunctionLabel(junctionId) {
   return `<text x="${-junctionCanvasSize/2+5}" y="${junctionCanvasSize-5}">${junctionId}</text>`
 }
 
+function pointToSegmentDistance(point, start, end) {
+  const deltaLat = end[0] - start[0];
+  const deltaLon = end[1] - start[1];
+  const lengthSquared = deltaLat * deltaLat + deltaLon * deltaLon;
+  const projection = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1,
+    ((point[0] - start[0]) * deltaLat + (point[1] - start[1]) * deltaLon) / lengthSquared));
+  const nearest = [start[0] + projection * deltaLat, start[1] + projection * deltaLon];
+  return pointDistance(point, nearest) / metersToDegrees;
+}
+
+function isRouteJunction(position) {
+  return yardTrackCoordinates.every(coords => {
+    for (let i = 1; i < coords.length; ++i)
+      if (pointToSegmentDistance(position, coords[i - 1], coords[i]) <= yardJunctionRadiusMeters)
+        return false;
+    return true;
+  });
+}
+
+function getBranchAngle(junction, selectedBranch) {
+  if (selectedBranch == null)
+    return 0;
+  const coords = trackCoordinates.get(junction.branches[selectedBranch]);
+  if (!coords || coords.length < 2)
+    return 0;
+  const deltaLat = coords[1][0] - coords[0][0];
+  const deltaLon = coords[1][1] - coords[0][1];
+  return Math.atan2(deltaLon, deltaLat) * 180 / Math.PI;
+}
+
+function getOverviewBranchAngle(junction, selectedBranch) {
+  const selectedAngle = getBranchAngle(junction, selectedBranch);
+  if (selectedBranch == null)
+    return selectedAngle;
+  const otherAngle = getBranchAngle(junction, 1 - selectedBranch);
+  const divergence = (selectedAngle - otherAngle + 540) % 360 - 180;
+  return selectedAngle + Math.sign(divergence || (selectedBranch === 0 ? -1 : 1)) * 30;
+}
+
+function createOverviewJunctionIcon(junctionId, selectedBranch) {
+  const junction = junctions[junctionId];
+  const angle = junction ? getOverviewBranchAngle(junction, selectedBranch) : 0;
+  return L.divIcon({
+    className: 'overview-junction-marker',
+    html: `<div class="overview-junction-symbol" style="transform: rotate(${angle}deg)" title="J-${junctionId}">` +
+      '<svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="14"/>' +
+      '<path class="junction-arrow" d="M22 32V9M14 17L22 9L30 17"/>' +
+      '<path class="junction-pointer" d="M22 0L16 10H28Z"/></svg></div>',
+    iconAnchor: [22, 22],
+    iconSize: [44, 44],
+  });
+}
+
+function createOverviewJunctionMarker(position, junctionId) {
+  return L.marker(position, {
+    icon: createOverviewJunctionIcon(junctionId, null),
+    keyboard: false,
+    riseOnHover: true,
+  })
+    .addEventListener('click', () => toggleJunction(junctionId))
+    .addTo(overviewJunctionLayer);
+}
+
 function createJunctionOverlay(junctionId) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('id', `J-${junctionId}`)
@@ -458,8 +636,19 @@ function createJunctionOverlay(junctionId) {
 
 function updateJunctionOverlay(junctionId, selectedBranch) {
   const junction = junctions[junctionId]
-  junction.marker.getElement().innerHTML = createJunctionShape(selectedBranch) + createJunctionLabel(junctionId);
+  const previousTrackId = junction.selectedBranch == null ? null : junction.branches[junction.selectedBranch];
+  if (previousTrackId)
+    selectedTrackBranchCounts.set(previousTrackId, (selectedTrackBranchCounts.get(previousTrackId) || 1) - 1);
+  junction.selectedBranch = selectedBranch;
   const selectedTrackId = junction.branches[selectedBranch]
+  selectedTrackBranchCounts.set(selectedTrackId, (selectedTrackBranchCounts.get(selectedTrackId) || 0) + 1);
+  updateTrackLabelHighlight(previousTrackId);
+  updateTrackLabelHighlight(selectedTrackId);
+  const markerElement = junction.marker.getElement();
+  if (markerElement)
+    markerElement.innerHTML = createJunctionShape(selectedBranch) + createJunctionLabel(junctionId);
+  if (junction.overviewMarker)
+    junction.overviewMarker.setIcon(createOverviewJunctionIcon(junctionId, selectedBranch));
   trackPolyLines.get(selectedTrackId).setStyle({ color: 'steelblue', dashArray: null });
   const unselectedTrackPolyLine = trackPolyLines.get(junction.branches[1-selectedBranch]);
   unselectedTrackPolyLine
@@ -478,8 +667,19 @@ function createJunctionMarker(p, junctionId) {
     getJunctionOverlayBounds(p),
     { interactive: true, renderer: canvasRenderer })
     .addEventListener('click', () => toggleJunction(junctionId) )
-    .addTo(map)
+    .addTo(detailJunctionLayer)
     .setZIndex(Math.floor(p[0] * 100000 + p[1] * 100000));
+}
+
+function updateTrackLabelHighlight(trackId) {
+  if (!trackLabels.has(trackId))
+    return;
+  const isSelected = selectedTrackBranchCounts.get(trackId) === trackBranchCounts.get(trackId);
+  trackLabels.get(trackId).forEach(label => {
+    const text = label.querySelector('text');
+    if (text)
+      text.setAttribute('fill', isSelected ? '#ffd43b' : 'deepskyblue');
+  });
 }
 
 function updateAllJunctions(states) {
@@ -514,6 +714,19 @@ function followCar(carId, shouldScroll) {
 // player
 
 const playerMarkers = new Map();
+const overviewPlayerMarkers = new Map();
+const detailPlayerLayer = L.layerGroup().addTo(map);
+const overviewPlayerLayer = L.layerGroup();
+
+function createOverviewPlayerIcon(playerData) {
+  return L.divIcon({
+    className: 'overview-player-marker',
+    html: `<div class="overview-player-symbol" style="--player-color:${playerData.color}">` +
+      `<div class="overview-player-arrow" style="transform:rotate(${playerData.rotation}deg)"></div></div>`,
+    iconAnchor: [18, 18],
+    iconSize: [36, 36],
+  });
+}
 
 function getPlayerOverlayBounds(position) {
   const size = metersToDegrees * 2;
@@ -536,13 +749,26 @@ function updatePlayerOverlays(data) {
   });
   Object.entries(data).forEach(([id, playerData]) => {
     const polygonElem = document.getElementById(`playerPolygon-${id}`);
-    polygonElem.setAttribute('transform', `rotate(${playerData.rotation})`);
+    if (polygonElem)
+      polygonElem.setAttribute('transform', `rotate(${playerData.rotation})`);
     playerMarkers.get(id).setBounds(getPlayerOverlayBounds(playerData.position));
+    const overviewMarker = overviewPlayerMarkers.get(id);
+    overviewMarker.setLatLng(playerData.position);
+    overviewMarker.setIcon(createOverviewPlayerIcon(playerData));
   });
 }
 
 function removePlayerOverlay(id) {
+  if (markerToFollowKey === `player-${id}`)
+    stopFollowing();
   document.getElementById(`playerPolygon-${id}`)?.remove();
+  const detailMarker = playerMarkers.get(id);
+  if (detailMarker)
+    detailPlayerLayer.removeLayer(detailMarker);
+  const overviewMarker = overviewPlayerMarkers.get(id);
+  if (overviewMarker)
+    overviewPlayerLayer.removeLayer(overviewMarker);
+  overviewPlayerMarkers.delete(id);
   playerMarkers.delete(id);
 }
 
@@ -565,8 +791,20 @@ function createPlayerMarker(id, playerData) {
     createPlayerOverlay(id, playerData),
     getPlayerOverlayBounds(playerData.position),
     { interactive: true, bubblingMouseEvents: false })
-    .addEventListener('click', e => setMarkerToFollow(e.target))
-    .addTo(map));
+    .addEventListener('mousedown', event => L.DomEvent.stopPropagation(event.originalEvent))
+    .addEventListener('click', () => togglePlayerFollow(id))
+    .addTo(detailPlayerLayer));
+
+  const overviewMarker = L.marker(playerData.position, {
+    icon: createOverviewPlayerIcon(playerData),
+    bubblingMouseEvents: false,
+    keyboard: false,
+    riseOnHover: true,
+  })
+    .addEventListener('mousedown', event => L.DomEvent.stopPropagation(event.originalEvent))
+    .addEventListener('click', () => togglePlayerFollow(id))
+    .addTo(overviewPlayerLayer);
+  overviewPlayerMarkers.set(id, overviewMarker);
 }
 
 function scrollToTrack(trackId) {
@@ -937,7 +1175,7 @@ function updateOnce() {
   })
   .then(_ => {
     if (markerToFollow)
-      map.panTo(markerToFollow.getBounds().getCenter());
+      map.panTo(getMarkerCenter(markerToFollow));
   });
 }
 
@@ -952,3 +1190,23 @@ function updateLoop() {
 junctionsReady.then(_ => {
   updateLoop();
 });
+
+function setLayerVisible(layer, visible) {
+  if (visible && !map.hasLayer(layer))
+    layer.addTo(map);
+  else if (!visible && map.hasLayer(layer))
+    layer.removeFrom(map);
+}
+
+function updateMapForZoom() {
+  const detailMode = map.getZoom() >= detailZoomThreshold;
+  setLayerVisible(detailTrackLabelLayer, detailMode);
+  setLayerVisible(detailJunctionLayer, detailMode);
+  setLayerVisible(detailPlayerLayer, detailMode);
+  setLayerVisible(stationCodeLayer, !detailMode);
+  setLayerVisible(overviewJunctionLayer, !detailMode);
+  setLayerVisible(overviewPlayerLayer, !detailMode);
+}
+
+map.addEventListener('zoomend', updateMapForZoom);
+updateMapForZoom();
