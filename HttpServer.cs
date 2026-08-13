@@ -239,36 +239,58 @@ namespace DvMod.RemoteDispatch
 
         private static async void HandleJunctionRequest(HttpListenerContext context)
         {
-            var url = context.Request.Url;
-            switch (url.Segments.Length)
+            try
             {
-            case 2:
-                Render200(context, ContentTypes.Json, Junctions.GetJunctionPointJSON());
-                break;
-            case 4:
-                var junctionIdString = url.Segments[2].TrimEnd('/');
-                if (int.TryParse(junctionIdString, out var junctionId) && url.Segments[3] == "toggle" && IsValidJunctionId(junctionId))
+                var url = context.Request.Url;
+                switch (url.Segments.Length)
                 {
-                    if (!Main.settings.permissions.HasJunctionPermission(context.User.Identity.Name))
+                case 2:
+                    Render200(context, ContentTypes.Json, Junctions.GetJunctionPointJSON());
+                    break;
+                case 4:
+                    var junctionIdString = url.Segments[2].TrimEnd('/');
+                    if (int.TryParse(junctionIdString, out var junctionId) && url.Segments[3] == "toggle" && IsValidJunctionId(junctionId))
                     {
-                        RenderEmpty(context, 403);
+                        var username = context.User?.Identity?.Name ?? "";
+                        if (!Main.settings.permissions.HasJunctionPermission(username))
+                        {
+                            RenderEmpty(context, 403);
+                            return;
+                        }
+                        var newSelectedBranch = await Updater.RunOnMainThread(() =>
+                        {
+                            try
+                            {
+                                Main.DebugLog(() => $"Toggling J-{junctionId}.");
+                                var junction = RailTrackRegistry.Instance.OrderedJunctions[junctionId];
+                                if (junction == null)
+                                    return -1;
+                                junction.Switch(Junction.SwitchMode.REGULAR);
+                                return junction.selectedBranch;
+                            }
+                            catch (Exception e)
+                            {
+                                Main.DebugLog(() => $"Error toggling J-{junctionId}: {e}");
+                                return -1;
+                            }
+                        }).ConfigureAwait(false);
+                        if (newSelectedBranch < 0)
+                            RenderEmpty(context, 500);
+                        else
+                            Render200(context, new JValue(newSelectedBranch));
                         return;
                     }
-                    var newSelectedBranch = await Updater.RunOnMainThread(() =>
-                    {
-                        Main.DebugLog(() => $"Toggling J-{junctionId}.");
-                        var junction = RailTrackRegistry.Instance.OrderedJunctions[junctionId];
-                        junction.Switch(Junction.SwitchMode.REGULAR);
-                        return junction.selectedBranch;
-                    }).ConfigureAwait(false);
-                    Render200(context, new JValue(newSelectedBranch));
-                    return;
+                    RenderEmpty(context, 404);
+                    break;
+                default:
+                    RenderEmpty(context, 404);
+                    break;
                 }
-                RenderEmpty(context, 404);
-                break;
-            default:
-                RenderEmpty(context, 404);
-                break;
+            }
+            catch (Exception e)
+            {
+                Main.DebugLog(() => $"Error handling junction request: {e}");
+                RenderEmpty(context, 500);
             }
         }
 
