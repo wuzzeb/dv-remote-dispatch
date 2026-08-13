@@ -84,12 +84,12 @@ export class ReverserDisplay extends LocoControlDisplay {
 	protected readonly control = "reverser";
 	protected readonly title = "REVERSER";
 
-	protected override formatFeedback(value: number, locomotive: LocoState, _control: ControlState) {
+	protected override formatFeedback(value: number, _locomotive: LocoState, _control: ControlState) {
 		const position = value < 0.25 ? "R" : value > 0.75 ? "F" : "N";
 		return {
 			label: this.title,
 			value: position,
-			speed: `${Math.round(locomotive.speedKph)} km/h`,
+			speed: "",
 			indicator: Math.round(value * 100),
 		};
 	}

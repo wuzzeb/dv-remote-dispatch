@@ -5,19 +5,11 @@
     {
       "key": "label",
       "type": "text",
-      "rect": [8, 5, 92, 22],
+      "rect": [8, 5, 184, 22],
       "font": { "size": 14, "weight": 700 },
-      "alignment": "left",
+      "alignment": "center",
       "color": "#f6a817",
       "value": "REVERSER"
-    },
-    {
-      "key": "speed",
-      "type": "text",
-      "rect": [100, 5, 92, 22],
-      "font": { "size": 14, "weight": 600 },
-      "alignment": "right",
-      "color": "#b9d9f5"
     },
     {
       "key": "value",
