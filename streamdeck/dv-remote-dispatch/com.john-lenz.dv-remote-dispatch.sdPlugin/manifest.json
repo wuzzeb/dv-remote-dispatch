@@ -54,6 +54,21 @@
 			"States": [{ "Image": "imgs/actions/reverser/key" }]
 		},
 		{
+			"Name": "Combined Brake",
+			"UUID": "com.john-lenz.dv-remote-dispatch.combined-brake",
+			"Icon": "imgs/actions/independent-brake/icon",
+			"Tooltip": "Controls either the train brake or independent brake. Press to switch which brake the dial controls.",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/combined-brake.json",
+				"TriggerDescription": {
+					"Rotate": "Change brake setting",
+					"Push": "Switch between train and independent brake"
+				}
+			},
+			"States": [{ "Image": "imgs/actions/independent-brake/key" }]
+		},
+		{
 			"Name": "Dynamic Brake",
 			"UUID": "com.john-lenz.dv-remote-dispatch.dynamic-brake",
 			"Icon": "imgs/actions/dynamic-brake/icon",

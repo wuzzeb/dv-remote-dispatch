@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/layout.json",
+  "id": "dv-combined-brake",
+  "items": [
+    {
+      "key": "label",
+      "type": "text",
+      "rect": [8, 5, 92, 22],
+      "font": { "size": 14, "weight": 700 },
+      "alignment": "left",
+      "color": "#f6a817"
+    },
+    {
+      "key": "warning",
+      "type": "text",
+      "rect": [100, 5, 92, 22],
+      "font": { "size": 12, "weight": 700 },
+      "alignment": "right",
+      "color": "#f2554a"
+    },
+    {
+      "key": "value",
+      "type": "text",
+      "rect": [8, 30, 184, 38],
+      "font": { "size": 34, "weight": 800 },
+      "alignment": "center"
+    },
+    {
+      "key": "indicator",
+      "type": "bar",
+      "rect": [8, 76, 184, 14],
+      "value": 0,
+      "subtype": 4,
+      "border_w": 0,
+      "bar_bg_c": "#292929",
+      "bar_fill_c": "#f6a817"
+    }
+  ]
+}
