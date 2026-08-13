@@ -26,39 +26,63 @@
 			"UUID": "com.john-lenz.dv-remote-dispatch.independent-brake",
 			"Icon": "imgs/actions/independent-brake/icon",
 			"Tooltip": "Displays the current independent brake setting from Derail Valley.",
-			"Controllers": ["Encoder"],
-			"Encoder": { "layout": "layouts/brake.json" },
-			"States": [{ "Image": "imgs/actions/independent-brake/key" }]
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "layouts/brake.json"
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/independent-brake/key"
+				}
+			]
 		},
 		{
 			"Name": "Train Brake Display",
 			"UUID": "com.john-lenz.dv-remote-dispatch.train-brake",
 			"Icon": "imgs/actions/train-brake/icon",
 			"Tooltip": "Displays the current train brake setting from Derail Valley.",
-			"Controllers": ["Encoder"],
-			"Encoder": { "layout": "layouts/brake.json" },
-			"States": [{ "Image": "imgs/actions/train-brake/key" }]
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "layouts/brake.json"
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/train-brake/key"
+				}
+			]
 		},
 		{
 			"Name": "Reverser",
 			"UUID": "com.john-lenz.dv-remote-dispatch.reverser",
 			"Icon": "imgs/actions/reverser/icon",
 			"Tooltip": "Controls and displays the current reverser position.",
-			"Controllers": ["Encoder"],
+			"Controllers": [
+				"Encoder"
+			],
 			"Encoder": {
 				"layout": "layouts/reverser.json",
 				"TriggerDescription": {
 					"Rotate": "Change reverser position"
 				}
 			},
-			"States": [{ "Image": "imgs/actions/reverser/key" }]
+			"States": [
+				{
+					"Image": "imgs/actions/reverser/key"
+				}
+			]
 		},
 		{
 			"Name": "Combined Brake",
 			"UUID": "com.john-lenz.dv-remote-dispatch.combined-brake",
 			"Icon": "imgs/actions/independent-brake/icon",
 			"Tooltip": "Controls either the train brake or independent brake. Press to switch which brake the dial controls.",
-			"Controllers": ["Encoder"],
+			"Controllers": [
+				"Encoder"
+			],
 			"Encoder": {
 				"layout": "layouts/combined-brake.json",
 				"TriggerDescription": {
@@ -66,29 +90,49 @@
 					"Push": "Switch between train and independent brake"
 				}
 			},
-			"States": [{ "Image": "imgs/actions/independent-brake/key" }]
+			"States": [
+				{
+					"Image": "imgs/actions/independent-brake/key"
+				}
+			]
 		},
 		{
 			"Name": "Dynamic Brake",
 			"UUID": "com.john-lenz.dv-remote-dispatch.dynamic-brake",
 			"Icon": "imgs/actions/dynamic-brake/icon",
 			"Tooltip": "Controls and displays the dynamic brake setting.",
-			"Controllers": ["Encoder"],
+			"Controllers": [
+				"Encoder"
+			],
 			"Encoder": {
 				"layout": "layouts/brake.json",
-				"TriggerDescription": { "Rotate": "Change dynamic brake setting" }
+				"TriggerDescription": {
+					"Rotate": "Change dynamic brake setting"
+				}
 			},
-			"States": [{ "Image": "imgs/actions/dynamic-brake/key" }]
+			"States": [
+				{
+					"Image": "imgs/actions/dynamic-brake/key"
+				}
+			]
 		},
 		{
 			"Name": "Sander",
 			"UUID": "com.john-lenz.dv-remote-dispatch.sander",
 			"Icon": "imgs/actions/sander/icon",
 			"Tooltip": "Toggles maximum sanding on or off.",
-			"Controllers": ["Keypad"],
+			"Controllers": [
+				"Keypad"
+			],
 			"States": [
-				{ "Image": "imgs/actions/sander/off", "TitleAlignment": "middle" },
-				{ "Image": "imgs/actions/sander/on", "TitleAlignment": "middle" }
+				{
+					"Image": "imgs/actions/sander/off",
+					"TitleAlignment": "middle"
+				},
+				{
+					"Image": "imgs/actions/sander/on",
+					"TitleAlignment": "middle"
+				}
 			]
 		},
 		{
@@ -96,46 +140,78 @@
 			"UUID": "com.john-lenz.dv-remote-dispatch.headlights-front",
 			"Icon": "imgs/actions/front-lights/icon",
 			"Tooltip": "Controls and displays the front headlight configuration.",
-			"Controllers": ["Encoder"],
+			"Controllers": [
+				"Encoder"
+			],
 			"Encoder": {
 				"layout": "layouts/brake.json",
-				"TriggerDescription": { "Rotate": "Change front headlights" }
+				"TriggerDescription": {
+					"Rotate": "Change front headlights"
+				}
 			},
-			"States": [{ "Image": "imgs/actions/front-lights/key" }]
+			"States": [
+				{
+					"Image": "imgs/actions/front-lights/key"
+				}
+			]
 		},
 		{
 			"Name": "Rear Headlights",
 			"UUID": "com.john-lenz.dv-remote-dispatch.headlights-rear",
 			"Icon": "imgs/actions/rear-lights/icon",
 			"Tooltip": "Controls and displays the rear headlight configuration.",
-			"Controllers": ["Encoder"],
+			"Controllers": [
+				"Encoder"
+			],
 			"Encoder": {
 				"layout": "layouts/brake.json",
-				"TriggerDescription": { "Rotate": "Change rear headlights" }
+				"TriggerDescription": {
+					"Rotate": "Change rear headlights"
+				}
 			},
-			"States": [{ "Image": "imgs/actions/rear-lights/key" }]
+			"States": [
+				{
+					"Image": "imgs/actions/rear-lights/key"
+				}
+			]
 		},
 		{
 			"Name": "Wipers",
 			"UUID": "com.john-lenz.dv-remote-dispatch.wipers",
 			"Icon": "imgs/actions/wipers/icon",
 			"Tooltip": "Controls and displays the windshield wiper setting.",
-			"Controllers": ["Encoder"],
+			"Controllers": [
+				"Encoder"
+			],
 			"Encoder": {
 				"layout": "layouts/brake.json",
-				"TriggerDescription": { "Rotate": "Change wiper setting" }
+				"TriggerDescription": {
+					"Rotate": "Change wiper setting"
+				}
 			},
-			"States": [{ "Image": "imgs/actions/wipers/key" }]
+			"States": [
+				{
+					"Image": "imgs/actions/wipers/key"
+				}
+			]
 		},
 		{
 			"Name": "Horn",
 			"UUID": "com.john-lenz.dv-remote-dispatch.horn",
 			"Icon": "imgs/actions/horn/icon",
 			"Tooltip": "Sounds the locomotive horn while held.",
-			"Controllers": ["Keypad"],
+			"Controllers": [
+				"Keypad"
+			],
 			"States": [
-				{ "Image": "imgs/actions/horn/off", "TitleAlignment": "middle" },
-				{ "Image": "imgs/actions/horn/on", "TitleAlignment": "middle" }
+				{
+					"Image": "imgs/actions/horn/off",
+					"TitleAlignment": "middle"
+				},
+				{
+					"Image": "imgs/actions/horn/on",
+					"TitleAlignment": "middle"
+				}
 			]
 		},
 		{
@@ -143,10 +219,18 @@
 			"UUID": "com.john-lenz.dv-remote-dispatch.cab-light",
 			"Icon": "imgs/actions/cab-light/icon",
 			"Tooltip": "Cycles the cab lights through off, gauge lights, and full cab lights.",
-			"Controllers": ["Keypad"],
+			"Controllers": [
+				"Keypad"
+			],
 			"States": [
-				{ "Image": "imgs/actions/cab-light/off", "TitleAlignment": "bottom" },
-				{ "Image": "imgs/actions/cab-light/on", "TitleAlignment": "bottom" }
+				{
+					"Image": "imgs/actions/cab-light/off",
+					"TitleAlignment": "bottom"
+				},
+				{
+					"Image": "imgs/actions/cab-light/on",
+					"TitleAlignment": "bottom"
+				}
 			]
 		}
 	],
