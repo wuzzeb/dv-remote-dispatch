@@ -7,7 +7,7 @@
       "type": "text",
       "rect": [8, 5, 184, 22],
       "font": { "size": 14, "weight": 700 },
-      "alignment": "center",
+      "alignment": "left",
       "color": "#f6a817",
       "value": "REVERSER"
     },
