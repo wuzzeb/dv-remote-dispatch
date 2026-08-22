@@ -33,7 +33,7 @@ namespace DvMod.RemoteDispatch
             {
             case "throttle":
                 remoteController.controlsOverrider.Throttle?.Set(
-                    Mathf.Clamp01(controller.GetTargetThrottle() + steps / 9f));
+                    Mathf.Clamp01(controller.GetTargetThrottle() + steps / 18f));
                 return remoteController.controlsOverrider.Throttle != null;
             case "independentBrake":
                 remoteController.controlsOverrider.IndependentBrake?.Set(
@@ -53,7 +53,12 @@ namespace DvMod.RemoteDispatch
                 remoteController.controlsOverrider.Reverser?.Set(targetReverser);
                 return remoteController.controlsOverrider.Reverser != null;
             case "dynamicBrake":
-                return MoveControl(remoteController.controlsOverrider.DynamicBrake, steps);
+                var dynamicBrake = remoteController.controlsOverrider.DynamicBrake;
+                if (dynamicBrake == null)
+                    return false;
+                var step = dynamicBrake.IsNotched ? 0.5f / dynamicBrake.NotchCount : 0.05f;
+                dynamicBrake.Set(Mathf.Clamp01(dynamicBrake.Value + steps * step));
+                return true;
             case "headlightsFront":
                 return MoveControl(remoteController.controlsOverrider.HeadlightsFront, steps);
             case "headlightsRear":
