@@ -20,6 +20,7 @@
     <Reference Include="DV.Interaction"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.Interaction.dll</HintPath></Reference>
     <Reference Include="DV.PointSet"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.PointSet.dll</HintPath></Reference>
     <Reference Include="DV.RailTrack"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.RailTrack.dll</HintPath></Reference>
+    <Reference Include="DV.SignPlacer"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.SignPlacer.dll</HintPath></Reference>
     <Reference Include="DV.ThingTypes"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.ThingTypes.dll</HintPath></Reference>
     <Reference Include="DV.Utils"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\DV.Utils.dll</HintPath></Reference>
     <Reference Include="Microsoft.CSharp"><HintPath Condition="'$(DVManagedPath)' != ''">$(DVManagedPath)\Microsoft.CSharp.dll</HintPath></Reference>

@@ -274,3 +274,20 @@ body {
   transform-origin: 7px 11px;
   width: 0;
 }
+.speed-sign-marker {
+  background: transparent;
+  border: 0;
+}
+.speed-sign-marker span {
+  background: #ededed;
+  border: 2px solid #1a1a1a;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px black;
+  box-sizing: border-box;
+  color: #1a1a1a;
+  display: block;
+  font: bold 12px/20px Arial, sans-serif;
+  height: 24px;
+  text-align: center;
+  width: 24px;
+}

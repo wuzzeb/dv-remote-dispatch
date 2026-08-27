@@ -336,6 +336,8 @@ const yardTrackCoordinates = [];
 const stationBounds = new Map();
 const detailTrackLabelLayer = L.layerGroup().addTo(map);
 const stationCodeLayer = L.layerGroup();
+const overviewSpeedSignLayer = L.layerGroup();
+const speedSignMarkers = new Map();
 
 const stationNames = {
   CME: 'Coal Mine East',
@@ -814,6 +816,39 @@ function scrollToTrack(trackId) {
     map.panTo(polyLine.getCenter());
 }
 
+// speed signs
+
+function createSpeedSignIcon(speed) {
+  return L.divIcon({
+    className: 'speed-sign-marker',
+    html: `<span title="Speed limit ${speed} km/h">${speed}</span>`,
+    iconAnchor: [12, 12],
+    iconSize: [24, 24],
+  });
+}
+
+function updateSpeedSignOverlays(signs) {
+  const newKeys = new Set(signs.map(sign => `${sign.position[0]},${sign.position[1]}`));
+  for (const [key, marker] of speedSignMarkers) {
+    if (!newKeys.has(key)) {
+      overviewSpeedSignLayer.removeLayer(marker);
+      speedSignMarkers.delete(key);
+    }
+  }
+  for (const sign of signs) {
+    const key = `${sign.position[0]},${sign.position[1]}`;
+    let marker = speedSignMarkers.get(key);
+    if (!marker) {
+      marker = L.marker(sign.position, {
+        icon: createSpeedSignIcon(sign.speed),
+        interactive: false,
+        keyboard: false,
+      }).addTo(overviewSpeedSignLayer);
+      speedSignMarkers.set(key, marker);
+    }
+  }
+}
+
 fetch(new URL('/player', location))
 .then(resp => resp.json())
 .then(data => {
@@ -1164,6 +1199,9 @@ function updateOnce() {
       case 'player':
         updatePlayerOverlays(data);
         break;
+      case 'signs':
+        updateSpeedSignOverlays(data);
+        break;
       default:
         const segments = tag.split('-');
         switch (segments[0]) {
@@ -1202,10 +1240,11 @@ function updateMapForZoom() {
   const detailMode = map.getZoom() >= detailZoomThreshold;
   setLayerVisible(detailTrackLabelLayer, detailMode);
   setLayerVisible(detailJunctionLayer, detailMode);
-  setLayerVisible(detailPlayerLayer, detailMode);
+setLayerVisible(detailPlayerLayer, detailMode);
   setLayerVisible(stationCodeLayer, !detailMode);
   setLayerVisible(overviewJunctionLayer, !detailMode);
   setLayerVisible(overviewPlayerLayer, !detailMode);
+  setLayerVisible(overviewSpeedSignLayer, !detailMode);
 }
 
 map.addEventListener('zoomend', updateMapForZoom);
