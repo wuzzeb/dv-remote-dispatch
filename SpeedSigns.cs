@@ -51,6 +51,8 @@ namespace DvMod.RemoteDispatch
         private static Dictionary<RailTrack, TrackEntry>? trackEntries;
         private static Dictionary<long, List<(TrackEntry entry, float span)>>? spatialIndex;
         private static Dictionary<TrackEntry, List<(float span, WorldSign sign, bool appliesToForward)>>? signsByTrack;
+        private static readonly HashSet<long> knownSignKeys = new HashSet<long>();
+        private static float lastSignScanTime;
 
         private static string upcomingJson = "[]";
         private static readonly object upcomingLock = new object();
@@ -79,6 +81,7 @@ namespace DvMod.RemoteDispatch
             EnsureLoaded();
             if (trackEntries == null || spatialIndex == null)
                 return;
+            RefreshSigns();
             string json;
             try
             {
@@ -131,7 +134,24 @@ namespace DvMod.RemoteDispatch
                 }
             }
 
-            var newSigns = new List<WorldSign>();
+            trackEntries = newEntries;
+            spatialIndex = newIndex;
+            signsByTrack = new Dictionary<TrackEntry, List<(float, WorldSign, bool)>>();
+            allSigns = new List<WorldSign>();
+            allSignsJson = "[]";
+            RefreshSigns();
+        }
+
+        private static void RefreshSigns()
+        {
+            if (trackEntries == null || spatialIndex == null)
+                return;
+            var now = Time.time;
+            if (allSigns != null && now - lastSignScanTime < 2f)
+                return;
+            lastSignScanTime = now;
+
+            var found = new List<WorldSign>();
             foreach (var generator in UnityEngine.Object.FindObjectsOfType<SignGeneratorData>())
             {
                 if (generator.signParameters == null)
@@ -143,37 +163,50 @@ namespace DvMod.RemoteDispatch
                     float speed;
                     if (!float.TryParse(sp.signText, NumberStyles.Float, CultureInfo.InvariantCulture, out speed))
                         continue;
-                    newSigns.Add(new WorldSign(generator.transform.position - WorldMover.currentMove, speed,
+                    found.Add(new WorldSign(generator.transform.position - WorldMover.currentMove, speed,
                         generator.transform.forward));
                 }
             }
 
-            var newSignsByTrack = new Dictionary<TrackEntry, List<(float, WorldSign, bool)>>();
+            var newSigns = new List<WorldSign>();
+            foreach (var sign in found)
+            {
+                var key = SignKey(sign);
+                if (knownSignKeys.Add(key))
+                    newSigns.Add(sign);
+            }
+            if (newSigns.Count == 0)
+                return;
+
             foreach (var sign in newSigns)
             {
-                var assigned = FindClosest(sign.position, SIGN_ASSIGN_RADIUS_METERS, newEntries, newIndex);
+                var assigned = FindClosest(sign.position, SIGN_ASSIGN_RADIUS_METERS, trackEntries, spatialIndex);
                 if (assigned == null)
                     continue;
                 var entry = assigned.Value.entry;
                 var span = FindSpanOnEntry(entry, sign.position);
                 var trackForward = GetForwardAtSpan(entry, span);
                 var appliesToForward = Vector3.Dot(sign.facing, trackForward) < 0f;
-                if (!newSignsByTrack.TryGetValue(entry, out var list))
+                if (!signsByTrack!.TryGetValue(entry, out var list))
                 {
                     list = new List<(float, WorldSign, bool)>();
-                    newSignsByTrack[entry] = list;
+                    signsByTrack![entry] = list;
                 }
                 list.Add((span, sign, appliesToForward));
+                allSigns!.Add(sign);
             }
-
-            allSignsJson = JsonConvert.SerializeObject(newSigns.Select(s => new JObject(
+            allSignsJson = JsonConvert.SerializeObject(allSigns.Select(s => new JObject(
                 new JProperty("position", new World.Position(s.position).ToLatLon().ToJson()),
                 new JProperty("speed", Math.Round(s.speed))
             )));
-            allSigns = newSigns;
-            trackEntries = newEntries;
-            spatialIndex = newIndex;
-            signsByTrack = newSignsByTrack;
+            Main.DebugLog(() => $"SpeedSigns: +{newSigns.Count} new signs, {allSigns.Count} total");
+        }
+
+        private static long SignKey(WorldSign sign)
+        {
+            return CellKey(
+                (int)Math.Round(sign.position.x * 10f),
+                (int)Math.Round(sign.position.z * 10f));
         }
 
         private static IEnumerable<EquiPointSet.Point> GenerateHashPoints(TrackEntry entry)
